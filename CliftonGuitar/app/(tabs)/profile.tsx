@@ -4,6 +4,7 @@ import {
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
 import {
   Image,
@@ -111,7 +112,7 @@ const MenuLink = ({
 
 // --- Main Profile Screen ---
 const Profile = () => {
-  const handleLogout = () => console.log("User logged out");
+  const handleLogout = () => router.replace('/login');
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100" edges={["left", "right", "bottom"]}>
