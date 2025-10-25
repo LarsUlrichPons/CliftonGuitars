@@ -4,7 +4,6 @@ import SearchBar from "@/components/searchbar";
 import { useRouter } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 
-
 export default function HomeScreen() {
   const router = useRouter();
 
