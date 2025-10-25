@@ -4,7 +4,14 @@ import './globals.css';
 export default function RootLayout() {
   return(
 
-<Stack>
+<Stack initialRouteName="splashart">
+
+<Stack.Screen
+    name="splashart"
+    options={{
+      headerShown: false,
+    }}
+  />
 
 <Stack.Screen 
     name="(tabs)"
@@ -12,6 +19,27 @@ export default function RootLayout() {
   />
   <Stack.Screen 
     name="products"
+    options={{
+      headerShown: false,
+    }}
+  />
+
+  <Stack.Screen 
+    name="login"
+    options={{
+      headerShown: false,
+    }}
+  />
+
+  <Stack.Screen 
+    name="index"
+    options={{
+      headerShown: false,
+    }}
+  />
+
+  <Stack.Screen
+    name="signup"
     options={{
       headerShown: false,
     }}
