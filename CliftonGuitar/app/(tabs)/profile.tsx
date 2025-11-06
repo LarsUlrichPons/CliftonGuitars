@@ -1,13 +1,8 @@
-import {
-  Feather,
-  FontAwesome5,
-  Ionicons,
-  MaterialIcons,
-} from "@expo/vector-icons";
-import { router } from "expo-router";
+import { Feather, FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import {
   Image,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -15,139 +10,130 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-// --- Mock User ---
+// ==============================
+// MOCK DATA
+// ==============================
 const MOCK_USER = {
   name: "Kim Chaewon",
   avatarUrl:
     "https://i.pinimg.com/736x/50/a7/93/50a793644c1588c4cc74d47633f85dac.jpg",
 };
 
-// --- Icon Chooser Helper ---
-const getIconComponent = (library: string) => {
+const ORDER_STATUS_GRID = [
+  { label: "To Pay", icon: "wallet-outline", library: "Ionicons" },
+  { label: "To Ship", icon: "cube-outline", library: "Ionicons" },
+  { label: "To Deliver", icon: "shipping-fast", library: "FontAwesome5" },
+  { label: "To Rate", icon: "star-outline", library: "Ionicons" },
+  { label: "Cancelled", icon: "close-circle-outline", library: "Ionicons" },
+  { label: "Order History", icon: "receipt-outline", library: "Ionicons" },
+  { label: "Wishlist", icon: "heart", library: "FontAwesome" },
+  { label: "Support", icon: "headset-outline", library: "Ionicons" },
+];
+
+const MENU_LINKS = [
+  { label: "Edit Profile", icon: "person-outline", library: "Ionicons", route: "EditProfile" },
+  { label: "Edit Shipping Address", icon: "location-outline", library: "Ionicons", route: "EditShippingAddress" },
+  { label: "Contact Us", icon: "mail-outline", library: "Ionicons", route: "ContactUs" },
+];
+
+const getIconComponent = (library: string): React.ComponentType<any> => {
   switch (library) {
     case "FontAwesome5":
       return FontAwesome5;
-    case "MaterialIcons":
-      return MaterialIcons;
     case "Feather":
       return Feather;
+    case "MaterialIcons":
+      return MaterialIcons;
+    case "FontAwesome":
+      return FontAwesome;
     default:
+      
       return Ionicons;
   }
 };
 
-// --- Data ---
-const ORDER_STATUS_GRID = [
-  { label: "To Pay", icon: "wallet-outline", library: "Ionicons" },
-  { label: "To Ship", icon: "package", library: "Feather" },
-  { label: "To Receive", icon: "shipping-fast", library: "FontAwesome5" },
-  { label: "To Rate", icon: "star-outline", library: "Ionicons" },
-  { label: "Cancelled", icon: "x-circle", library: "Feather" },
-  { label: "Order History", icon: "history", library: "MaterialIcons" },
-  { label: "Wishlist", icon: "heart", library: "Feather" },
-  { label: "Contact Us", icon: "mail-outline", library: "Ionicons" },
-];
-
-const MENU_LINKS = [
-  { label: "Edit Profile", icon: "user", library: "Feather", route: "edit-profile" },
-  { label: "Edit Shipping Address", icon: "map-pin", library: "Feather", route: "edit-address" },
-  // Removed Settings
-];
-
-// --- Components ---
-const StatusIcon = ({
-  label,
-  icon,
-  library,
-}: {
-  label: string;
-  icon: string;
-  library: string;
-}) => {
+// ==============================
+// REUSABLE COMPONENTS
+// ==============================
+const StatusIcon = ({ label, icon, library }: any) => {
   const IconComponent = getIconComponent(library);
-
   return (
-    <TouchableOpacity className="w-1/4 items-center p-2 mb-2">
-      <View className="p-3 rounded-xl mb-1 items-center justify-center">
-        <IconComponent name={icon as any} size={28} color="#2E2F2A" />
-      </View>
-      <Text className="text-xs text-gray-700 text-center">{label}</Text>
+    <TouchableOpacity style={styles.statusIconContainer}>
+      <IconComponent
+        name={icon}
+        size={28}
+        color={label === "Wishlist" ? "#dc2626" : "#1A1A1A"}
+      />
+      <Text style={styles.statusIconLabel}>{label}</Text>
     </TouchableOpacity>
   );
 };
 
-const MenuLink = ({
-  label,
-  icon,
-  library,
-  route,
-}: {
-  label: string;
-  icon: string;
-  library: string;
-  route: string;
-}) => {
+const MenuLink = ({ label, icon, library, route }: any) => {
   const IconComponent = getIconComponent(library);
-
   return (
     <TouchableOpacity
-      className="flex-row items-center justify-between bg-white p-5 border-b border-gray-100"
-      onPress={() => console.log(`Navigating to ${route}`)} // replace with navigation.navigate(route)
+      style={styles.menuLinkContainer}
+      // TODO: navigation.navigate(route)
     >
-      <View className="flex-row items-center">
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
         <IconComponent
-          name={icon as any}
-          size={26}
-          color="#2E2F2A"
-          style={{ marginRight: 14 }}
+          name={icon}
+          size={22}
+          color="#1A1A1A"
+          style={{ marginRight: 12 }}
         />
-        <Text className="text-lg font-semibold text-[#1a1a1a]">{label}</Text>
+        <Text style={styles.menuLinkLabel}>{label}</Text>
       </View>
-      <Ionicons name="chevron-forward-outline" size={24} color="#9ca3af" />
+      <Feather name="chevron-right" size={22} color="#9ca3af" />
     </TouchableOpacity>
   );
 };
 
-// --- Main Profile Screen ---
-const Profile = () => {
-  const handleLogout = () => router.replace('/login');
+// ==============================
+// MAIN COMPONENT
+// ==============================
+export default function Profile() {
+  const handleLogout = () => {
+    // TODO: Add backend logout logic
+    console.log("User logged out");
+  };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100" edges={["left", "right", "bottom"]}>
+    <View style={styles.mainContainer}>
       <StatusBar barStyle="light-content" backgroundColor="#2E2F2A" />
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Header */}
-        <View className="bg-white pb-6 border-b border-gray-200 shadow-sm">
-          <View className="bg-[#2E2F2A] p-4 pt-12">
-            <Text className="text-3xl font-extrabold text-white">Clifton</Text>
-            <Text className="text-4xl font-extrabold text-white">Guitars</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* ============================== HEADER ============================== */}
+        <View>
+          <View style={styles.darkHeaderBar}>
+            <Text style={styles.headerTitle}>Clifton</Text>
+            <Text style={styles.headerTitle}>Guitars</Text>
           </View>
 
-          <View className="flex-row items-center p-4">
-            <View className="relative mr-4">
+          {/* Light gray user section under header */}
+          <View style={styles.profileInfoContainer}>
+            <View style={styles.avatarWrapper}>
               <Image
                 source={{ uri: MOCK_USER.avatarUrl }}
-                className="w-20 h-20 rounded-full border-2 border-white"
-                style={styles.avatarShadow}
+                style={styles.avatarImage}
               />
-              <View className="absolute bottom-0 right-0 p-[3px] rounded-full bg-white border border-gray-300">
+              <View style={styles.cameraOverlay}>
                 <Ionicons name="camera-outline" size={12} color="#2E2F2A" />
               </View>
             </View>
-            <Text className="text-2xl font-bold text-[#1a1a1a]">{MOCK_USER.name}</Text>
+            <Text style={styles.usernameText}>{MOCK_USER.name}</Text>
           </View>
         </View>
 
-        {/* My Orders */}
-        <View className="bg-white mx-4 mt-4 rounded-xl shadow-md p-4">
-          <Text className="text-lg font-bold text-[#1a1a1a] mb-4">My Orders</Text>
-          <View className="flex-row flex-wrap justify-start">
-            {ORDER_STATUS_GRID.map((item) => (
+        {/* ============================== MY ORDERS ============================== */}
+        <View style={styles.myOrdersSection}>
+          <Text style={styles.myOrdersTitle}>My Orders</Text>
+          <View style={styles.ordersGrid}>
+            {ORDER_STATUS_GRID.map((item, index) => (
               <StatusIcon
-                key={item.label}
+                key={index}
                 label={item.label}
                 icon={item.icon}
                 library={item.library}
@@ -156,11 +142,11 @@ const Profile = () => {
           </View>
         </View>
 
-        {/* Menu Links */}
-        <View className="mt-4 mx-4 rounded-xl overflow-hidden shadow-md">
-          {MENU_LINKS.map((link) => (
+        {/* ============================== MENU LINKS ============================== */}
+        <View style={styles.menuLinksWrapper}>
+          {MENU_LINKS.map((link, index) => (
             <MenuLink
-              key={link.label}
+              key={index}
               label={link.label}
               icon={link.icon}
               library={link.library}
@@ -170,29 +156,162 @@ const Profile = () => {
         </View>
       </ScrollView>
 
-      {/* Logout Button */}
-      <View className="absolute bottom-4 left-4 right-4">
-        <TouchableOpacity
-          className="bg-red-600 p-4 rounded-xl items-center shadow-lg flex-row justify-center"
-          onPress={handleLogout}
-        >
-          <Feather name="log-out" size={24} color="#fff" style={{ marginRight: 8 }} />
-          <Text className="text-lg font-bold text-white">Logout</Text>
+      {/* ============================== LOGOUT ============================== */}
+      <View style={styles.logoutButtonWrapper}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Feather
+            name="log-out"
+            size={20}
+            color="#fff"
+            style={{ marginRight: 8 }}
+          />
+          <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
-};
+}
 
-// --- Styles ---
+// ==============================
+// STYLES
+// ==============================
 const styles = StyleSheet.create({
-  avatarShadow: {
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "#f3f4f6",
+  },
+  scrollContent: {
+    paddingBottom: 120,
+  },
+
+  // --- HEADER ---
+  darkHeaderBar: {
+    backgroundColor: "#2E2F2A",
+    paddingHorizontal: 16,
+    paddingTop:
+      (Platform.OS === "android" ? StatusBar.currentHeight || 20 : 44) + 10,
+    paddingBottom: 18,
+  },
+  headerTitle: {
+    fontSize: 30,
+    fontWeight: "900",
+    color: "white",
+    lineHeight: 34,
+  },
+
+  // --- PROFILE INFO (Light gray section) ---
+  profileInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  avatarWrapper: {
+    position: "relative",
+    marginRight: 12,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 41,
+  },
+  cameraOverlay: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: "white",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  usernameText: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#000",
+  },
+
+  // --- ORDERS ---
+  myOrdersSection: {
+    backgroundColor: "white",
+    marginTop: 12,
+    marginHorizontal: 16,
+    borderRadius: 10,
+  },
+  myOrdersTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  ordersGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    padding: 8,
+  },
+  statusIconContainer: {
+    width: "25%",
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  statusIconLabel: {
+    fontSize: 14,
+    color: "#4b5563",
+    marginTop: 4,
+  },
+
+  // --- MENU LINKS ---
+  menuLinksWrapper: {
+    marginTop: 12,
+    marginHorizontal: 16,
+    borderRadius: 10,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "white",
+  },
+  menuLinkContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  menuLinkLabel: {
+    fontSize: 17,
+    color: "#1a1a1a",
+    fontWeight: "500",
+  },
+
+  // --- LOGOUT BUTTON ---
+  logoutButtonWrapper: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+  logoutButton: {
+    backgroundColor: "#dc2626",
+    padding: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  logoutButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
-
-export default Profile;

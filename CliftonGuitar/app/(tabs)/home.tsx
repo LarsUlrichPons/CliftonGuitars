@@ -4,15 +4,17 @@ import SearchBar from "@/components/searchbar";
 import { useRouter } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 
+
 export default function HomeScreen() {
   const router = useRouter();
 
 const handleCategoryPress = (category: string) => {
-  router.push({
-    pathname: "/products",
-    params: { category: category === "All" ? "" : category },
-  });
-};
+    // Navigate to the Products tab and pass the category as a parameter
+    router.push({
+      pathname: "/products",  // make sure your file is in app/products.tsx or app/products/index.tsx
+      params: { category },
+    });
+  };
 
   return (
    <ScrollView className="flex-1 bg-white">

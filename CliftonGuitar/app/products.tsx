@@ -1,102 +1,213 @@
+import BestSellerDropdown from "@/components/DropDown";
+import SearchBar from "@/components/searchbar";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React from "react";
+import {
+  Image,
+  Platform,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
+// ==============================
+// MOCK DATA (for display)
+// ==============================
 const mockProducts = [
-  { id: 1, name: "Clifton Strat Pro", category: "Electric Guitars", price: 899, image: "https://placehold.co/200x200/2E2F2A/ffffff?text=Electric" },
-  { id: 2, name: "Roadhouse Bass", category: "Bass Guitars", price: 650, image: "https://placehold.co/200x200/6D7260/ffffff?text=Bass" },
-  { id: 3, name: "Acoustic Dreadnought X", category: "Acoustic Guitars", price: 520, image: "https://placehold.co/200x200/9C9E8C/ffffff?text=Acoustic" },
-  { id: 4, name: "Vintage Valve Amp 40W", category: "Amplifiers", price: 1100, image: "https://placehold.co/200x200/C1B99B/ffffff?text=Amp" },
-  { id: 5, name: "Premium Strap (Black)", category: "Accessories", price: 35, image: "https://placehold.co/200x200/2E2F2A/ffffff?text=Accessory" },
-  { id: 6, name: "Stratocaster HSS", category: "Electric Guitars", price: 999, image: "https://placehold.co/200x200/6D7260/ffffff?text=Electric" },
-  { id: 7, name: "J-Bass Standard", category: "Bass Guitars", price: 750, image: "https://placehold.co/200x200/9C9E8C/ffffff?text=Bass" },
-  { id: 8, name: "Concert Ukulele", category: "Acoustic Guitars", price: 150, image: "https://placehold.co/200x200/C1B99B/ffffff?text=Acoustic" },
+  {
+    id: 1,
+    name: "Clifton Vintage Custom Telecaster Electric Guitar",
+    category: "Electric Guitar",
+    price: 6950,
+    image:
+      "https://placehold.co/300x300/1C1C1C/FFFFFF?text=Electric+Guitar",
+  },
+  {
+    id: 2,
+    name: "Roadhouse Bass Pro",
+    category: "Bass Guitar",
+    price: 7500,
+    image:
+      "https://placehold.co/300x300/3C3C3C/FFFFFF?text=Bass+Guitar",
+  },
+  {
+    id: 3,
+    name: "Clifton Acoustic Dreadnought",
+    category: "Acoustic Guitar",
+    price: 5200,
+    image:
+      "https://placehold.co/300x300/6D7260/FFFFFF?text=Acoustic+Guitar",
+  },
+];
+
+const CATEGORY_PILLS = [
+  "All Products",
+  "Bass Guitar",
+  "Electric Guitar",
+  "Acoustic Guitar",
+  "Basta",
 ];
 
 export default function ProductsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const selectedCategory = params.category as string || "All Products";
 
-  const isAllProducts = selectedCategory === "" || selectedCategory === "All Products";
+  const initialCategory = (params.category as string) || "Bass Guitar";
+  const [selectedCategory, setSelectedCategory] = React.useState(initialCategory);
+  const [searchText, setSearchText] = React.useState("");
 
-  const filteredProducts = mockProducts.filter(product =>
-    isAllProducts || product.category === selectedCategory
-  );
+  // Filtered products
+  const filteredProducts = mockProducts.filter((product) => {
+    const matchCategory = product.category === selectedCategory;
+    const matchSearch = product.name
+      .toLowerCase()
+      .includes(searchText.toLowerCase());
+    return matchCategory && matchSearch;
+  });
 
-  const handleBack = () => {
-    router.back();
-  };
+  const handleBack = () => router.back();
 
   return (
-   
-    <SafeAreaView className="flex-1 bg-white">
-      {/* Header matching Cart.tsx */}
-      <View className="flex-row items-center justify-center p-4 bg-white border-b border-gray-200">
-        <TouchableOpacity 
-          onPress={handleBack} 
-          className="absolute left-4 p-2"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Text className="text-2xl text-gray-800">{'<'}</Text>
-        </TouchableOpacity>
-        <Text className="text-xl font-semibold text-[#1a1a1a]">
-          {selectedCategory || "All Products"}
-        </Text>
-      </View>
+    <View className="flex-1 bg-[#F5F5F5]">
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      <ScrollView className="flex-1 bg-gray-100">
-        {/* Category Info */}
-        <View className="px-4 py-3 bg-white border-b border-gray-200">
-          <Text className="text-sm text-gray-600 font-medium">
-            {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
-          </Text>
+      {/* ================= HEADER ================= */}
+      <View
+        className="bg-white w-full border-b border-gray-200"
+        style={{
+          paddingTop:
+            Platform.OS === "android"
+              ? (StatusBar.currentHeight || 40) + 10
+              : 60,
+          paddingBottom: 10,
+        }}
+      >
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={handleBack}
+          className="absolute left-4 z-10"
+          style={{
+            top:
+              Platform.OS === "android"
+                ? (StatusBar.currentHeight || 40) + 10
+                : 64,
+          }}
+        >
+          <Ionicons name="arrow-back" size={26} color="#1a1a1a" />
+        </TouchableOpacity>
+
+        {/* Center Title */}
+        <Text className="text-2xl font-extrabold text-[#2E2F2A] text-center">
+          CATEGORIES
+        </Text>
+
+        {/* Search Bar */}
+        <View className="mt-4 px-4">
+          <SearchBar
+            
+          />
         </View>
 
+        {/* Category Pills */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mt-4 px-4"
+          contentContainerStyle={{ gap: 12 }}
+        >
+          {CATEGORY_PILLS.map((category) => (
+            <TouchableOpacity
+              key={category}
+              onPress={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-full border ${
+                selectedCategory === category
+                  ? "border-[#FF9500] bg-[#FFF4E5]"
+                  : "border-gray-300 bg-transparent"
+              }`}
+            >
+              <Text
+                className={`text-sm font-semibold ${
+                  selectedCategory === category
+                    ? "text-[#FF9500]"
+                    : "text-gray-700"
+                }`}
+              >
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* ================= PRODUCT LIST ================= */}
+      <ScrollView className="flex-1">
+        {/* Section Title */}
+        <View className="px-4 mb-5">
+            <BestSellerDropdown />
+          </View>
+
         {/* Product Grid */}
-        <View className="flex-row flex-wrap justify-between px-4 py-6">
+        <View className="flex-row flex-wrap justify-start px-4">
           {filteredProducts.length > 0 ? (
-            filteredProducts.map(product => (
+            filteredProducts.map((product) => (
               <TouchableOpacity
                 key={product.id}
-                className="w-[48%] mb-6 bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm"
-                onPress={() => console.log(`View product: ${product.name}`)}
-                activeOpacity={0.8}
-              >
+                className="w-[48%] mb-6 bg-white rounded-xl overflow-hidden shadow"
+                onPress={() =>
+                    router.push({
+                      pathname: "/products_detail",
+                      params: {
+                        id: product.id.toString(),
+                        name: product.name,
+                        price: product.price.toString(),
+                        imageUrl: product.image,
+                        category: product.category,
+                      },
+                    })
+                  }
+                                >
                 {/* Product Image */}
-                <View className="h-36 w-full items-center justify-center bg-[#2E2F2A]">
+                <View className="h-40 w-full items-center justify-center bg-white relative">
                   <Image
                     source={{ uri: product.image }}
                     className="w-full h-full"
                     resizeMode="contain"
                   />
+                 
                 </View>
-                
+
                 {/* Product Info */}
                 <View className="p-3">
-                  <Text className="text-base font-bold text-[#1a1a1a] mb-1 leading-5" numberOfLines={2}>
+                  <Text
+                    className="text-xs text-gray-800 mb-1 leading-4"
+                    numberOfLines={2}
+                  >
                     {product.name}
                   </Text>
-                  <Text className="text-lg font-extrabold text-red-600">
-                    ${product.price.toFixed(2)}
-                  </Text>
-                  <Text className="text-xs text-gray-500 mt-1">
-                    {product.category}
+                  <Text className="text-base font-extrabold text-[#FF9500]">
+                    ₱{product.price.toLocaleString("en-US")}
                   </Text>
                 </View>
               </TouchableOpacity>
             ))
           ) : (
             <View className="w-full items-center justify-center py-16">
-              <Text className="text-lg font-medium text-gray-500">No products found in this category.</Text>
-              <Text className="text-sm text-gray-400 mt-2">Try browsing other categories</Text>
+              <Text className="text-lg font-medium text-gray-500">
+                No products found.
+              </Text>
+              <Text className="text-sm text-gray-400 mt-2">
+                Try searching or switching categories.
+              </Text>
             </View>
           )}
         </View>
 
-        {/* Bottom spacing */}
+        {/* Bottom Padding */}
         <View className="h-10" />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
