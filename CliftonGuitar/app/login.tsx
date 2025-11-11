@@ -8,16 +8,42 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
   ScrollView,
-  ImageBackground, // Ensure ImageBackground is imported
+  ImageBackground,
+  Linking,
+  Alert,
+  Animated,
+  useWindowDimensions,
 } from "react-native";
-// Removed Animated import as it wasn't used in this file
 
 const MOCK_ACCOUNT = {
   username: "kimchaewon",
   password: "@Chaechae123",
 };
+
+// ⭐️ START: Animation Logic
+const shakeAnimation = new Animated.Value(0);
+
+const startShake = () => {
+  shakeAnimation.setValue(0);
+  Animated.timing(shakeAnimation, {
+    toValue: 1,
+    duration: 300,
+    useNativeDriver: true,
+  }).start(() => shakeAnimation.setValue(0));
+};
+
+const shake = {
+  transform: [
+    {
+      translateX: shakeAnimation.interpolate({
+        inputRange: [0, 0.2, 0.4, 0.6, 0.8, 1],
+        outputRange: [0, -10, 10, -10, 10, 0],
+      }),
+    },
+  ],
+};
+// ⭐️ END: Animation Logic
 
 const Login = () => {
   const [username, setUsername] = useState<string>("");
@@ -26,10 +52,17 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
+  // ✅ Get screen dimensions for responsive design
+  const { width, height } = useWindowDimensions();
+  const isWeb = Platform.OS === 'web';
+  const isLargeScreen = width >= 768;
+  const isExtraLargeScreen = width >= 1024;
+
   const handleLogin = () => {
     setError(null);
     if (!username || !password) {
       setError("Please enter both username and password.");
+      startShake();
       return;
     }
 
@@ -43,6 +76,7 @@ const Login = () => {
       } else {
         setError("Invalid username or password.");
         setPassword("");
+        startShake();
       }
       setSubmitting(false);
     }, 350);
@@ -50,113 +84,244 @@ const Login = () => {
 
   const navigateToSignUp = () => router.replace("/signup");
 
+  const handleForgotPassword = () => {
+    const email = 'support@cliftonguitars.com';
+    const subject = 'Password Reset Request for My Account';
+    const body = `Hello, I need assistance resetting the password for my account with username: ${username || '[Enter your username]'}.`;
+    
+    const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    Linking.openURL(url).catch(() => {
+        Alert.alert("Email App Required", "Please configure an email application to send a reset request.");
+    });
+  };
+
+  // ✅ Different background for web
+  const backgroundSource = isWeb 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    ? require('../assets/images/catalogs/LoadingPage.jpg')
+    : require('../assets/images/catalogs/Login_SignUp_bg.png');
+
   return (
-    // 1. ImageBackground now wraps the entire component to ensure it fills the screen
+
+    
     <ImageBackground
-      source={require('../assets/images/catalogs/Login_SignUp_bg.png')}
+      source={backgroundSource}
       resizeMode="cover"
-      style={{ flex: 1 }} // Must take up the full available space
-      // Removed blurRadius={12} as it was blurring the entire background significantly, 
-      // making text hard to read, which is generally bad practice for login screens.
+      className="flex-1"
+      blurRadius={5}
+
     >
-      {/* 2. KeyboardAvoidingView wraps the scrollable content */}
+      {/* ✅ Web-specific background overlay */}
+      {isWeb && (
+        <View className="absolute inset-0 bg-black/30" 
+       
+      
+        />
+
+        
+      )}
+      
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
+        behavior={isWeb ? "height" : "padding"}
+        className="flex-1"
+         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+        
       >
-        {/* 3. ScrollView handles the content and scrolling when keyboard is up */}
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          contentContainerStyle={{ 
+            flexGrow: 1, 
+            justifyContent: 'flex-start',
+            paddingTop: height * 0.15 // ✅ Added this for vertical centering
+          }}
+          className={`flex-1 ${isWeb ? 'py-2' : 'py-4'} ${isLargeScreen ? 'py-12' : ''}`}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Logo */}
-          <View className="flex-1 justify-center items-center px-8 pt-12">
-            <Text style={styles.textShadowWhite} className="text-5xl font-extrabold text-white text-center tracking-wider mb-16">
-              Clifton Guitars
-            </Text>
-          </View>
+          {/* Main Container - Removed negative margin */}
+          <View className={`
+            w-full items-center
+            
+            ${isWeb ? 'max-w-[420px] self-center mt-20' : ''} {/* ✅ Changed -mt-10 to mt-4 */}
+            ${isLargeScreen ? 'max-w-[480px]' : ''}
+            ${isExtraLargeScreen ? 'max-w-[520px]' : ''}
+          `}>
+            
+            {/* Logo Section - Adjusted padding */}
+            <View className={`
+              justify-center items-center px-8
+              ${isWeb ? 'pt-4 pb-8' : 'pt-40 pb-14'} {/* ✅ Increased top padding */}
+              ${isLargeScreen ? 'pb-10' : ''}
+            `}>
+              <Text className={`
+                font-extrabold text-white text-center tracking-wider
+                ${isWeb ? 'text-5xl' : 'text-4xl'}
+                ${isLargeScreen ? 'text-6xl' : ''}
+              `} style={{
+                textShadowColor: 'rgba(0, 0, 0, 0.9)',
+                textShadowOffset: { width: 2, height: 2 },
+                textShadowRadius: 8,
+              }}>
+                Cliftunes
+              </Text>
+            </View>
 
-          {/* Login Form */}
-          <View className="w-full px-8 pb-16">
-            <TextInput
-              placeholder="Username"
-              placeholderTextColor="#888"
-              value={username}
-              onChangeText={(t) => {
-                setUsername(t);
-                if (error) setError(null);
-              }}
-              autoCapitalize="none"
-              className="w-full bg-white p-4 rounded-xl text-[#1a1a1a] text-base mb-4 shadow-md"
-            />
-
-            <View className="w-full bg-white rounded-xl flex-row items-center mb-3 shadow-md">
+            {/* Form Section - Adjusted padding */}
+            <View className={`
+              w-full
+              ${isWeb ? 'px-10 pb-8' : 'px-8 pb-8'} {/* ✅ Reduced bottom padding */}
+              ${isLargeScreen ? 'px-12' : ''}
+            `}>
+              {/* Username Input */}
               <TextInput
-                placeholder="Password"
+                placeholder="Username"
                 placeholderTextColor="#888"
-                value={password}
+                value={username}
                 onChangeText={(t) => {
-                  setPassword(t);
+                  setUsername(t);
                   if (error) setError(null);
                 }}
-                secureTextEntry={!showPassword}
-                className="flex-1 p-4 text-[#1a1a1a] text-base"
+                autoCapitalize="none"
+                className={`
+                  w-full bg-white rounded-xl text-gray-800 mb-4 shadow-md
+                  ${isWeb ? 'p-4 text-lg bg-white/95' : 'p-4 text-base'}
+                  ${isLargeScreen ? 'p-5 text-xl rounded-2xl' : ''}
+                `}
               />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                className="p-3"
-              >
-                <MaterialCommunityIcons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
-                  size={24}
-                  color="#888"
+
+              {/* Password Input */}
+              <View className={`
+                w-full bg-white rounded-xl flex-row items-center mb-3 shadow-md
+                ${isWeb ? 'bg-white/95' : ''}
+                ${isLargeScreen ? 'rounded-2xl' : ''}
+              `}>
+                <TextInput
+                  placeholder="Password"
+                  placeholderTextColor="#888"
+                  value={password}
+                  onChangeText={(t) => {
+                    setPassword(t);
+                    if (error) setError(null);
+                  }}
+                  secureTextEntry={!showPassword}
+                  className={`
+                    flex-1 text-gray-800
+                    ${isWeb ? 'p-4 text-lg' : 'p-4 text-base'}
+                    ${isLargeScreen ? 'p-5 text-xl' : ''}
+                  `}
                 />
-              </TouchableOpacity>
-            </View>
-
-            {error ? (
-              <Text className="text-sm text-red-400 font-medium mb-3 px-1">{error}</Text>
-            ) : (
-              <View className="h-3" />
-            )}
-
-            <TouchableOpacity
-              onPress={handleLogin}
-              className={`w-full p-4 rounded-full items-center shadow-lg ${
-                username && password ? "bg-yellow-400" : "bg-yellow-600/70"
-              } ${submitting ? "opacity-70" : ""}`}
-              disabled={!username || !password || submitting}
-            >
-              <Text className="text-lg font-bold text-[#1a1a1a]">
-                {submitting ? "Signing in..." : "Log in"}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Sign Up Link */}
-            <View className="flex-row justify-center mt-6">
-              <Text style={styles.textShadowBlack} className="text-white/70 text-sm">Don t have an account? </Text>
-              <TouchableOpacity onPress={navigateToSignUp}>
-                <Text style={styles.textShadowBlack} className="text-yellow-300 font-semibold text-sm">Sign up</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {/* Policy Links - Added back the missing policy links that were in the previous Login file */}
-            <View className="mt-16 items-center">
-              <Text style={styles.textShadowBlack} className="text-white/70 text-xs text-center mb-1">
-                By continuing, you agree to Clifton Guitars
-              </Text>
-              <View className="flex-row">
-                <TouchableOpacity>
-                  <Text style={styles.textShadowBlack} className="text-yellow-300 text-xs font-semibold underline mx-1">
-                    Terms of Use
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  className="p-3"
+                >
+                  <MaterialCommunityIcons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={isLargeScreen ? 28 : 24}
+                    color="#888"
+                  />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Forgot Password Link */}
+              <View className="w-full items-end mb-4">
+                <TouchableOpacity onPress={handleForgotPassword}>
+                  <Text className="text-yellow-300 text-sm font-semibold underline" style={{
+                    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+                    textShadowOffset: { width: 1, height: 1 },
+                    textShadowRadius: 3,
+                  }}>
+                    Forgot Password?
                   </Text>
                 </TouchableOpacity>
-                <Text style={styles.textShadowBlack} className="text-white/70 text-xs">and</Text>
-                <TouchableOpacity>
-                  <Text style={styles.textShadowBlack} className="text-yellow-300 text-xs font-semibold underline mx-1">
-                    Privacy Policy
+              </View>
+
+              {/* Error Message */}
+              {error ? (
+                <Text className="text-red-400 text-sm font-medium mb-3 px-1">
+                  {error}
+                </Text>
+              ) : (
+                <View className="h-3" />
+              )}
+
+              {/* Login Button */}
+              <Animated.View style={shake}>
+                <TouchableOpacity
+                  onPress={handleLogin}
+                  className={`
+                    w-full rounded-full items-center shadow-lg bg-yellow-400
+                    ${submitting ? 'opacity-70' : ''}
+                    ${isWeb ? 'p-4' : 'p-4'}
+                    ${isLargeScreen ? 'p-5' : ''}
+                  `}
+                  disabled={submitting}
+                >
+                  <Text className={`
+                    font-bold text-gray-900
+                    ${isWeb ? 'text-lg' : 'text-lg'}
+                    ${isLargeScreen ? 'text-xl' : ''}
+                  `}>
+                    {submitting ? "Signing in..." : "Log in"}
                   </Text>
                 </TouchableOpacity>
+              </Animated.View>
+
+              {/* Sign Up Link */}
+              <View className="flex-row justify-center pt-6">
+                <Text className="text-white/70 text-sm" style={{
+                  textShadowColor: 'rgba(0, 0, 0, 0.7)',
+                  textShadowOffset: { width: 1, height: 1 },
+                  textShadowRadius: 3,
+                }}>
+                  Do not have an account?{" "}
+                </Text>
+                <TouchableOpacity onPress={navigateToSignUp}>
+                  <Text className="text-yellow-300 font-semibold text-sm" style={{
+                    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+                    textShadowOffset: { width: 1, height: 1 },
+                    textShadowRadius: 3,
+                  }}>
+                    Sign up
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
+              {/* Policy Links - Moved closer */}
+              <View className={`
+                items-center mt-10 {/* ✅ Reduced from mt-10 */}
+                ${isWeb ? 'mt-6' : ''} {/* ✅ Reduced from mt-8 */}
+              `}>
+                <Text className="text-white/70 text-xs text-center mb-1" style={{
+                  textShadowColor: 'rgba(0, 0, 0, 0.7)',
+                  textShadowOffset: { width: 1, height: 1 },
+                  textShadowRadius: 3,
+                }}>
+                  By continuing, you agree to Clifton Guitars
+                </Text>
+                <View className="flex-row items-center">
+                  <TouchableOpacity>
+                    <Text className="text-yellow-300 text-xs font-semibold underline mx-1" style={{
+                      textShadowColor: 'rgba(0, 0, 0, 0.7)',
+                      textShadowOffset: { width: 1, height: 1 },
+                      textShadowRadius: 3,
+                    }}>
+                      Terms of Use
+                    </Text>
+                  </TouchableOpacity>
+                  <Text className="text-white/70 text-xs" style={{
+                    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+                    textShadowOffset: { width: 1, height: 1 },
+                    textShadowRadius: 3,
+                  }}>and</Text>
+                  <TouchableOpacity>
+                    <Text className="text-yellow-300 text-xs font-semibold underline mx-1" style={{
+                      textShadowColor: 'rgba(0, 0, 0, 0.7)',
+                      textShadowOffset: { width: 1, height: 1 },
+                      textShadowRadius: 3,
+                    }}>
+                      Privacy Policy
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
@@ -165,18 +330,5 @@ const Login = () => {
     </ImageBackground>
   );
 };
-
-const styles = StyleSheet.create({
-  textShadowBlack: {
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-  },
-  textShadowWhite: {
-    textShadowColor: 'rgba(0, 0, 0, 0.9)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 5,
-  }
-});
 
 export default Login;

@@ -1,317 +1,213 @@
 import { Feather, FontAwesome, FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import {
-  Image,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Image,
+    Platform,
+    ScrollView,
+    StatusBar,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import { useRouter } from 'expo-router'; 
 
 // ==============================
 // MOCK DATA
 // ==============================
 const MOCK_USER = {
-  name: "Kim Chaewon",
-  avatarUrl:
-    "https://i.pinimg.com/736x/50/a7/93/50a793644c1588c4cc74d47633f85dac.jpg",
+    name: "Kim Chaewon",
+    avatarUrl:
+        "https://i.pinimg.com/736x/50/a7/93/50a793644c1588c4cc74d47633f85dac.jpg",
 };
 
 const ORDER_STATUS_GRID = [
-  { label: "To Pay", icon: "wallet-outline", library: "Ionicons" },
-  { label: "To Ship", icon: "cube-outline", library: "Ionicons" },
-  { label: "To Deliver", icon: "shipping-fast", library: "FontAwesome5" },
-  { label: "To Rate", icon: "star-outline", library: "Ionicons" },
-  { label: "Cancelled", icon: "close-circle-outline", library: "Ionicons" },
-  { label: "Order History", icon: "receipt-outline", library: "Ionicons" },
-  { label: "Wishlist", icon: "heart", library: "FontAwesome" },
-  { label: "Support", icon: "headset-outline", library: "Ionicons" },
+    // ⭐️ FIX: All order links now point to the MyOrders screen with a parameter set to the Label
+    { label: "To Pay", icon: "wallet-outline", library: "Ionicons", route: "MyOrders" }, 
+    { label: "To Ship", icon: "cube-outline", library: "Ionicons", route: "MyOrders" }, 
+    { label: "To Receive", icon: "shipping-fast", library: "FontAwesome5", route: "MyOrders" },
+    { label: "Return/Refunded", icon: "refresh", library: "MaterialCommunityIcons", route: "MyOrders" },
+    { label: "Cancelled", icon: "close-circle-outline", library: "Ionicons", route: "MyOrders" },
+    { label: "Completed", icon: "receipt-outline", library: "Ionicons", route: "MyOrders" },
+    { label: "Wishlist", icon: "heart", library: "FontAwesome", route: "Wishlist" },
+    { label: "Support", icon: "headset-outline", library: "Ionicons", route: "CustomerSupport" }, // Using ContactUs route
 ];
 
 const MENU_LINKS = [
-  { label: "Edit Profile", icon: "person-outline", library: "Ionicons", route: "EditProfile" },
-  { label: "Edit Shipping Address", icon: "location-outline", library: "Ionicons", route: "EditShippingAddress" },
-  { label: "Contact Us", icon: "mail-outline", library: "Ionicons", route: "ContactUs" },
+    { label: "Edit Profile", icon: "person-outline", library: "Ionicons", route: "EditProfile" }, 
+    { label: "Edit Shipping Address", icon: "location-outline", library: "Ionicons", route: "Address" }, 
+    { label: "Contact Us", icon: "mail-outline", library: "Ionicons", route: "contactus" },
 ];
-
-const getIconComponent = (library: string): React.ComponentType<any> => {
-  switch (library) {
-    case "FontAwesome5":
-      return FontAwesome5;
-    case "Feather":
-      return Feather;
-    case "MaterialIcons":
-      return MaterialIcons;
-    case "FontAwesome":
-      return FontAwesome;
-    default:
-      
-      return Ionicons;
-  }
-};
 
 // ==============================
 // REUSABLE COMPONENTS
 // ==============================
-const StatusIcon = ({ label, icon, library }: any) => {
-  const IconComponent = getIconComponent(library);
-  return (
-    <TouchableOpacity style={styles.statusIconContainer}>
-      <IconComponent
-        name={icon}
-        size={28}
-        color={label === "Wishlist" ? "#dc2626" : "#1A1A1A"}
-      />
-      <Text style={styles.statusIconLabel}>{label}</Text>
-    </TouchableOpacity>
-  );
+const getIconComponent = (library: string): React.ComponentType<any> => {
+    switch (library) {
+        case "FontAwesome5":
+            return FontAwesome5;
+        case "Feather":
+            return Feather;
+        case "MaterialIcons":
+            return MaterialIcons;
+        case "FontAwesome":
+            return FontAwesome;
+        default:
+            return Ionicons;
+    }
+};
+
+const StatusIcon = ({ label, icon, library, route }: any) => {
+    const IconComponent = getIconComponent(library);
+    const router = useRouter(); 
+    
+    const handlePress = () => {
+        // If the route is 'MyOrders', pass the label as the activeTab parameter
+        if (route === "MyOrders") {
+            router.push({
+                pathname: "/MyOrders", 
+                params: { activeTab: label } // Passes "To Pay", "To Ship", "Completed", etc.
+            });
+        } 
+        else if (route) {
+             // For standard routes (Wishlist, EditProfile)
+             router.push(route); 
+        } else {
+            console.log(`Tapped ${label}`);
+        }
+    };
+
+    return (
+        <TouchableOpacity onPress={handlePress} className="w-1/4 items-center py-4">
+            <IconComponent
+                name={icon}
+                size={28}
+                color={label === "Wishlist" ? "#dc2626" : "#1A1A1A"}
+            />
+            <Text 
+                className={`text-sm text-gray-600 mt-1 text-center ${
+                    label === "Return/Refunded" ? "text-xs leading-4" : ""
+                }`}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+            >
+                {label}
+            </Text>
+        </TouchableOpacity>
+    );
 };
 
 const MenuLink = ({ label, icon, library, route }: any) => {
-  const IconComponent = getIconComponent(library);
-  return (
-    <TouchableOpacity
-      style={styles.menuLinkContainer}
-      // TODO: navigation.navigate(route)
-    >
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <IconComponent
-          name={icon}
-          size={22}
-          color="#1A1A1A"
-          style={{ marginRight: 12 }}
-        />
-        <Text style={styles.menuLinkLabel}>{label}</Text>
-      </View>
-      <Feather name="chevron-right" size={22} color="#9ca3af" />
-    </TouchableOpacity>
-  );
+    const IconComponent = getIconComponent(library);
+    const router = useRouter(); 
+
+    return (
+        <TouchableOpacity
+            className="flex-row items-center justify-between bg-white py-[18px] px-4 border-b border-gray-100 last:border-b-0"
+            onPress={() => router.push(route)} 
+        >
+            <View className="flex-row items-center">
+                <IconComponent
+                    name={icon}
+                    size={22}
+                    color="#1A1A1A"
+                    style={{ marginRight: 12 }}
+                />
+                <Text className="text-[17px] text-[#1a1a1a] font-medium">{label}</Text>
+            </View>
+            <Feather name="chevron-right" size={22} color="#9ca3af" />
+        </TouchableOpacity>
+    );
 };
 
 // ==============================
 // MAIN COMPONENT
 // ==============================
 export default function Profile() {
-  const handleLogout = () => {
-    // TODO: Add backend logout logic
-    console.log("User logged out");
-  };
+    const handleLogout = () => {
+        // TODO: Add backend logout logic
+        console.log("User logged out");
+    };
 
-  return (
-    <View style={styles.mainContainer}>
-      <StatusBar barStyle="light-content" backgroundColor="#2E2F2A" />
+    // Calculate dynamic top padding for Android/iOS status bar spacing
+    const androidPaddingTop = (StatusBar.currentHeight || 20) + 10;
+    const iosPaddingTop = 44 + 10;
+    const HEADER_PADDING_TOP = Platform.OS === "android" ? androidPaddingTop : iosPaddingTop;
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* ============================== HEADER ============================== */}
-        <View>
-          <View style={styles.darkHeaderBar}>
-            <Text style={styles.headerTitle}>Clifton</Text>
-            <Text style={styles.headerTitle}>Guitars</Text>
-          </View>
 
-          {/* Light gray user section under header */}
-          <View style={styles.profileInfoContainer}>
-            <View style={styles.avatarWrapper}>
-              <Image
-                source={{ uri: MOCK_USER.avatarUrl }}
-                style={styles.avatarImage}
-              />
-              <View style={styles.cameraOverlay}>
-                <Ionicons name="camera-outline" size={12} color="#2E2F2A" />
-              </View>
+    return (
+        <View className="flex-1 bg-gray-200">
+            <StatusBar barStyle="light-content" backgroundColor="#2E2F2A" />
+
+            <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+                {/* ============================== HEADER ============================== */}
+                <View>
+                    {/* Dark Header Bar */}
+                    <View 
+                        style={{ paddingTop: HEADER_PADDING_TOP }}
+                        className="bg-[#2E2F2A] px-4 pb-[18px]"
+                    >
+                        <Text className="text-4xl font-extrabold text-white leading-[50px]">Cliftunes</Text>
+                    </View>
+
+                    {/* Profile Info Section */}
+                    <View className="flex-row items-center bg-white px-4 py-3 border-b border-gray-200">
+                        <View className="relative mr-3">
+                            <Image
+                                source={{ uri: MOCK_USER.avatarUrl }}
+                                className="w-20 h-20 rounded-full"
+                            />
+                            {/* Camera Overlay */}
+                           
+                        </View>
+                        <Text className="text-xl font-bold text-black">{MOCK_USER.name}</Text>
+                    </View>
+                </View>
+
+                {/* ============================== MY ORDERS ============================== */}
+                <View className="bg-white mt-3 mx-4 rounded-xl shadow-md">
+                    <Text className="text-lg font-bold text-black p-4 border-b border-gray-100">
+                        My Orders
+                    </Text>
+                    <View className="flex-row flex-wrap p-2">
+                        {ORDER_STATUS_GRID.map((item, index) => (
+                            <StatusIcon
+                                key={index}
+                                label={item.label}
+                                icon={item.icon}
+                                library={item.library}
+                                route={item.route}
+                            />
+                        ))}
+                    </View>
+                </View>
+
+                {/* ============================== MENU LINKS ============================== */}
+                <View className="mt-3 mx-4 rounded-xl overflow-hidden border border-gray-200 bg-white shadow-md">
+                    {MENU_LINKS.map((link, index) => (
+                        <MenuLink
+                            key={index}
+                            label={link.label}
+                            icon={link.icon}
+                            library={link.library}
+                            route={link.route}
+                        />
+                    ))}
+                </View>
+            </ScrollView>
+
+            {/* ============================== LOGOUT ============================== */}
+            <View className="absolute bottom-5 left-5 right-5">
+                <TouchableOpacity onPress={handleLogout} className="bg-red-600 p-3 rounded-xl flex-row justify-center items-center shadow-lg">
+                    <Feather
+                        name="log-out"
+                        size={20}
+                        color="#fff"
+                        style={{ marginRight: 8 }}
+                    />
+                    <Text className="text-white text-base font-bold">Logout</Text>
+                </TouchableOpacity>
             </View>
-            <Text style={styles.usernameText}>{MOCK_USER.name}</Text>
-          </View>
         </View>
-
-        {/* ============================== MY ORDERS ============================== */}
-        <View style={styles.myOrdersSection}>
-          <Text style={styles.myOrdersTitle}>My Orders</Text>
-          <View style={styles.ordersGrid}>
-            {ORDER_STATUS_GRID.map((item, index) => (
-              <StatusIcon
-                key={index}
-                label={item.label}
-                icon={item.icon}
-                library={item.library}
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* ============================== MENU LINKS ============================== */}
-        <View style={styles.menuLinksWrapper}>
-          {MENU_LINKS.map((link, index) => (
-            <MenuLink
-              key={index}
-              label={link.label}
-              icon={link.icon}
-              library={link.library}
-              route={link.route}
-            />
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* ============================== LOGOUT ============================== */}
-      <View style={styles.logoutButtonWrapper}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Feather
-            name="log-out"
-            size={20}
-            color="#fff"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
 }
-
-// ==============================
-// STYLES
-// ==============================
-const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-  },
-  scrollContent: {
-    paddingBottom: 120,
-  },
-
-  // --- HEADER ---
-  darkHeaderBar: {
-    backgroundColor: "#2E2F2A",
-    paddingHorizontal: 16,
-    paddingTop:
-      (Platform.OS === "android" ? StatusBar.currentHeight || 20 : 44) + 10,
-    paddingBottom: 18,
-  },
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: "900",
-    color: "white",
-    lineHeight: 34,
-  },
-
-  // --- PROFILE INFO (Light gray section) ---
-  profileInfoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  avatarWrapper: {
-    position: "relative",
-    marginRight: 12,
-  },
-  avatarImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 41,
-  },
-  cameraOverlay: {
-    position: "absolute",
-    right: -2,
-    bottom: -2,
-    padding: 4,
-    borderRadius: 12,
-    backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  usernameText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#000",
-  },
-
-  // --- ORDERS ---
-  myOrdersSection: {
-    backgroundColor: "white",
-    marginTop: 12,
-    marginHorizontal: 16,
-    borderRadius: 10,
-  },
-  myOrdersTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
-  },
-  ordersGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    padding: 8,
-  },
-  statusIconContainer: {
-    width: "25%",
-    alignItems: "center",
-    paddingVertical: 16,
-  },
-  statusIconLabel: {
-    fontSize: 14,
-    color: "#4b5563",
-    marginTop: 4,
-  },
-
-  // --- MENU LINKS ---
-  menuLinksWrapper: {
-    marginTop: 12,
-    marginHorizontal: 16,
-    borderRadius: 10,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    backgroundColor: "white",
-  },
-  menuLinkContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
-  },
-  menuLinkLabel: {
-    fontSize: 17,
-    color: "#1a1a1a",
-    fontWeight: "500",
-  },
-
-  // --- LOGOUT BUTTON ---
-  logoutButtonWrapper: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
-  },
-  logoutButton: {
-    backgroundColor: "#dc2626",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  logoutButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-});

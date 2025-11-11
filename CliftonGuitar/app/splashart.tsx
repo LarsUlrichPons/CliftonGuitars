@@ -36,7 +36,7 @@ const Splashart = () => {
         <View style={styles.contentContainer}>
           {/* Title */}
           <Text style={styles.title} className="text-6xl font-extrabold text-white text-center tracking-wider">
-            Clifton{"\n"}Guitars
+            Cliftunes
           </Text>
           
           {/* Tagline */}

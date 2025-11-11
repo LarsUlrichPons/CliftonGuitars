@@ -22,7 +22,7 @@ export default function FeaturedProductScroll({ onCategoryPress }: CategoriesPro
   const featuredProducts: Product[] = [
     { 
       id: 101, 
-      name: "Bass", 
+      name: "Bass Guitar", 
       bgColor: "bg-teal-300",
       source: require('../assets/images/catalogs/bassGuitar.png'), // REPLACE with your image path
     },

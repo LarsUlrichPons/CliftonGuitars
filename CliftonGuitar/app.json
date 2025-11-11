@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/logo.png",
@@ -19,7 +20,10 @@
         "monochromeImage": "./assets/images/logo.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode":"pan"
+      
+
     },
     "web": {
       "output": "static",
@@ -27,6 +31,7 @@
     },
     "plugins": [
       "expo-router",
+      
       [
         "expo-splash-screen",
         {

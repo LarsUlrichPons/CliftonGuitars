@@ -5,9 +5,10 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
-      colors: {
-        primary: "#1E40AF",
-        secondary: "#F59E0B",
+      textshadow: {
+        'sm': '0 1px 2px rgba(0, 0, 0, 0.7)',
+        'DEFAULT': '0 1px 3px rgba(0, 0, 0, 0.7)',
+        'lg': '0 2px 5px rgba(0, 0, 0, 0.9)',
       },
     },
   },

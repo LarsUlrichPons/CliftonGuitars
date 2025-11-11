@@ -1,6 +1,7 @@
 import BestSellerDropdown from "@/components/DropDown";
 import SearchBar from "@/components/searchbar";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
@@ -44,11 +45,14 @@ const mockProducts = [
 ];
 
 const CATEGORY_PILLS = [
-  "All Products",
   "Bass Guitar",
   "Electric Guitar",
   "Acoustic Guitar",
   "Basta",
+  "Drums",
+  "Keyboards",
+  "Violins",
+  "Amps",
 ];
 
 export default function ProductsScreen() {
@@ -70,6 +74,19 @@ export default function ProductsScreen() {
 
   const handleBack = () => router.back();
 
+  const pillsScrollRef = React.useRef<ScrollView>(null);
+
+React.useEffect(() => {
+  const index = CATEGORY_PILLS.findIndex(cat => cat === selectedCategory);
+  if (index >= 0 && pillsScrollRef.current) {
+    // Estimate scroll position based on index
+    const pillWidth = 100; // approximate width of each pill including margin
+    const scrollX = index * pillWidth - 50; // offset to center roughly
+    pillsScrollRef.current.scrollTo({ x: scrollX, animated: true });
+  }
+}, [selectedCategory]);
+
+
   return (
     <View className="flex-1 bg-[#F5F5F5]">
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -80,7 +97,7 @@ export default function ProductsScreen() {
         style={{
           paddingTop:
             Platform.OS === "android"
-              ? (StatusBar.currentHeight || 40) + 10
+              ? (StatusBar.currentHeight || 50) + 10
               : 60,
           paddingBottom: 10,
         }}
@@ -96,7 +113,7 @@ export default function ProductsScreen() {
                 : 64,
           }}
         >
-          <Ionicons name="arrow-back" size={26} color="#1a1a1a" />
+          <MaterialCommunityIcons name="chevron-left" size={30} color="#1a1a1a" />
         </TouchableOpacity>
 
         {/* Center Title */}
@@ -106,27 +123,40 @@ export default function ProductsScreen() {
 
         {/* Search Bar */}
         <View className="mt-4 px-4">
-          <SearchBar
-            
-          />
+          <SearchBar />
         </View>
 
-        {/* Category Pills */}
+        {/* Category Pills - FIXED SCROLLING */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="mt-4 px-4"
-          contentContainerStyle={{ gap: 12 }}
+          className="mt-4"
+          ref={pillsScrollRef}
+          contentContainerStyle={{ 
+            paddingHorizontal: 16,
+            gap: 12,
+            paddingBottom: 8,
+          }}
         >
           {CATEGORY_PILLS.map((category) => (
             <TouchableOpacity
               key={category}
               onPress={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full border ${
+              className={`py-2 px-4 rounded-full border ${
                 selectedCategory === category
                   ? "border-[#FF9500] bg-[#FFF4E5]"
-                  : "border-gray-300 bg-transparent"
+                  : "border-gray-300 bg-white"
               }`}
+              style={{
+                shadowColor: selectedCategory === category ? "#FF9500" : "#000",
+                shadowOffset: {
+                  width: 0,
+                  height: 1,
+                },
+                shadowOpacity: selectedCategory === category ? 0.2 : 0.1,
+                shadowRadius: 3,
+                elevation: selectedCategory === category ? 3 : 1,
+              }}
             >
               <Text
                 className={`text-sm font-semibold ${
@@ -134,6 +164,7 @@ export default function ProductsScreen() {
                     ? "text-[#FF9500]"
                     : "text-gray-700"
                 }`}
+                numberOfLines={1}
               >
                 {category}
               </Text>
